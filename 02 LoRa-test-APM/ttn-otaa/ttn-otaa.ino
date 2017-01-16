@@ -111,15 +111,11 @@ void onEvent (ev_t ev) {
             Serial.println(osticks2ms(os_getTime()/1000));
             if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
-            if (LMIC.dataLen) {
-              Serial.println(F("Received "));
-              Serial.println(LMIC.dataLen);
-              Serial.println(F(" bytes of payload"));
-              uint8_t data[LMIC.dataLen];
-              memcpy(&data, &(LMIC.frame + LMIC.dataBeg)[0], LMIC.dataLen);
-              for (int i = 0; i < LMIC.dataLen; i++) {
-                  Serial.println(data[i]);
-              }
+            if(LMIC.dataLen) {
+                // data received in rx slot after tx
+                Serial.print(F("Data Received: "));
+                Serial.write(LMIC.frame+LMIC.dataBeg, LMIC.dataLen);
+                Serial.println();
             }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
