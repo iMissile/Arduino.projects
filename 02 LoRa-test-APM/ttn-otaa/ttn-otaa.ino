@@ -116,6 +116,8 @@ void onEvent (ev_t ev) {
                 Serial.print(F("Data Received: "));
                 Serial.write(LMIC.frame+LMIC.dataBeg, LMIC.dataLen);
                 Serial.println();
+                Serial.println(LMIC.dataLen);
+                Serial.println(F(" bytes of payload\n"));
             }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
