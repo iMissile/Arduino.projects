@@ -37,21 +37,18 @@
 // first. When copying an EUI from ttnctl output, this means to reverse
 // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
 // 0x70.
-// static const u1_t PROGMEM APPEUI[8]={ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-static const u1_t PROGMEM APPEUI[8]={ 0x54, 0x1D, 0x00, 0xF0, 0x7E, 0xD5, 0xB3, 0x70 };
-
+static const u1_t PROGMEM APPEUI[8]={ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
 
 // This should also be in little endian format, see above.
-// static const u1_t PROGMEM DEVEUI[8]={ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-static const u1_t PROGMEM DEVEUI[8]={ 0x07, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
+static const u1_t PROGMEM DEVEUI[8]={ 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
 // practice, a key taken from ttnctl can be copied as-is.
 // The key shown here is the semtech default key.
-static const u1_t PROGMEM APPKEY[16] = { 0x90, 0xAB, 0x0A, 0xCB, 0x37, 0xB0, 0xEA, 0xF8, 0xE8, 0x21, 0x64, 0x11, 0x5D, 0x14, 0xE0, 0x00 };
+static const u1_t PROGMEM APPKEY[16] = { 0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C };
 void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
 
 static uint8_t mydata[] = "Hello, world!";
@@ -107,17 +104,12 @@ void onEvent (ev_t ev) {
             break;
         case EV_TXCOMPLETE:
             Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
-            Serial.println(F("Time in seconds: "));
-            Serial.println(osticks2ms(os_getTime()/1000));
             if (LMIC.txrxFlags & TXRX_ACK)
               Serial.println(F("Received ack"));
-            if(LMIC.dataLen) {
-                // data received in rx slot after tx
-                Serial.print(F("Data Received: "));
-                Serial.write(LMIC.frame+LMIC.dataBeg, LMIC.dataLen);
-                Serial.println();
-                Serial.println(LMIC.dataLen);
-                Serial.println(F(" bytes of payload\n"));
+            if (LMIC.dataLen) {
+              Serial.println(F("Received "));
+              Serial.println(LMIC.dataLen);
+              Serial.println(F(" bytes of payload"));
             }
             // Schedule next transmission
             os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
@@ -145,32 +137,13 @@ void onEvent (ev_t ev) {
 }
 
 void do_send(osjob_t* j){
-
-    Serial.println(F("do_send entered"));
-    // initialize digital pin LED_BUILTIN as an output.
-    //pinMode(LED_BUILTIN, OUTPUT);    
-    //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    //delay(1000);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    //delay(1000);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    //delay(1000);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    //delay(1000);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    //delay(1000);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    //delay(1000);                       // wait for a second
-
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
         LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-        Serial.print(F("Sending Message: "));
-        Serial.write(mydata, strlen(mydata));
-        Serial.println(F("\nPacket queued"));
+        Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
 }
@@ -196,6 +169,5 @@ void setup() {
 }
 
 void loop() {
-    // os_runloop_once();
-    os_runloop();
+    os_runloop_once();
 }
